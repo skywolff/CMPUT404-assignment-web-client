@@ -4,13 +4,13 @@
 # Copyright 2019 Alex Li
 #
 # Copyright 2016 Abram Hindle, https://github.com/tywtyw2002, and https://github.com/treedust
-# 
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-# 
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-# 
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -53,21 +53,21 @@ class HTTPClient(object):
 
     def get_headers(self,data):
         try:
-            section = data.split("\r\n\r\n") 
+            section = data.split("\r\n\r\n")
             return section[0]
         except:
             return None
 
     def get_body(self, data):
         try:
-            section = data.split("\r\n\r\n") 
+            section = data.split("\r\n\r\n")
             return section[1]
         except:
             return None
-    
+
     def sendall(self, data):
         self.socket.sendall(data.encode('utf-8'))
-        
+
     def close(self):
         self.socket.close()
 
@@ -93,12 +93,14 @@ class HTTPClient(object):
 
         # create request
         query = ""
-        if args: 
+        if args:
             query = "?" + urllib.parse.urlencode(args)
         mediaTypes = "*/*"
-        headers = ["GET" + " " + "/" + url.path + query + " HTTP/1.1",
+        headers = [
+            "GET" + " " + "/" + url.path + query + " HTTP/1.1",
             "Host: " + host,
-            "Accept: " + mediaTypes]
+            "Accept: " + mediaTypes,
+        ]
         request = "\r\n".join(headers) + "\r\n\r\n"
 
         # send request
@@ -111,9 +113,14 @@ class HTTPClient(object):
                 port = 8080
         self.connect(host,port)
         self.sendall(request)
+
+        # get response
         data = self.recvall(self.socket)
         self.close()
-        code,body = self.get_code(data), self.get_body(data)
+        code = self.get_code(data)
+        headers = self.get_headers(data)
+        body = self.get_body(data)
+        print(headers + "\n\n" + body)
         return HTTPResponse(code, body)
 
     def POST(self, url, args=None):
@@ -126,11 +133,13 @@ class HTTPClient(object):
             content = urllib.parse.urlencode(args)
         mediaTypes = "*/*"
         contentType = "application/x-www-form-urlencoded"
-        headers = ["POST" + " " + "/" + url.path + " HTTP/1.1",
+        headers = [
+            "POST" + " " + "/" + url.path + " HTTP/1.1",
             "Host: " + host,
-            "Accept: " + mediaTypes, 
+            "Accept: " + mediaTypes,
             "Content-Type: " + contentType,
-            "Content-Length: " + str(len(content))]
+            "Content-Length: " + str(len(content))
+        ]
         headers = "\r\n".join(headers) + "\r\n\r\n"
         request = headers + content + "\r\n\r\n"
 
@@ -146,7 +155,10 @@ class HTTPClient(object):
         self.sendall(request)
         data = self.recvall(self.socket)
         self.close()
-        code,body = self.get_code(data), self.get_body(data)
+        code = self.get_code(data)
+        headers = self.get_headers(data)
+        body = self.get_body(data)
+        print(headers + "\n\n" + body)
         return HTTPResponse(code, body)
 
     def command(self, url, command="GET", args=None):
@@ -154,7 +166,7 @@ class HTTPClient(object):
             return self.POST( url, args )
         else:
             return self.GET( url, args )
-    
+
 if __name__ == "__main__":
     client = HTTPClient()
     command = "GET"
