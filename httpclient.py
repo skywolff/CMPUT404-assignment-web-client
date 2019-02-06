@@ -73,19 +73,19 @@ class HTTPClient(object):
 
     # read everything from the socket
     def recvall(self, sock):
-        try:
-            buffer = bytearray()
-            done = False
-            while not done:
-                sock.settimeout(1.0)
-                part = sock.recv(1024)
-                if (part):
-                    buffer.extend(part)
-                else:
-                    done = not part
-            return buffer.decode("utf-8")
-        except socket.timeout:
-            return buffer.decode("utf-8")
+        # try:
+        buffer = bytearray()
+        done = False
+        while not done:
+            # sock.settimeout(1.0)
+            part = sock.recv(1024)
+            if (part):
+                buffer.extend(part)
+            else:
+                done = not part
+        return buffer.decode("utf-8")
+        # except socket.timeout:
+            # return buffer.decode("utf-8")
 
     def GET(self, url, args=None):
         url = urllib.parse.urlparse(url)
@@ -100,6 +100,7 @@ class HTTPClient(object):
             "GET" + " " + "/" + url.path + query + " HTTP/1.1",
             "Host: " + host,
             "Accept: " + mediaTypes,
+            "Connection: close"
         ]
         request = "\r\n".join(headers) + "\r\n\r\n"
 
@@ -121,6 +122,7 @@ class HTTPClient(object):
         headers = self.get_headers(data)
         body = self.get_body(data)
         print(headers + "\n\n" + body)
+        print("---------------------\n")
         return HTTPResponse(code, body)
 
     def POST(self, url, args=None):
@@ -138,7 +140,7 @@ class HTTPClient(object):
             "Host: " + host,
             "Accept: " + mediaTypes,
             "Content-Type: " + contentType,
-            "Content-Length: " + str(len(content))
+            "Content-Length: " + str(len(content)),
         ]
         headers = "\r\n".join(headers) + "\r\n\r\n"
         request = headers + content + "\r\n\r\n"
@@ -159,6 +161,7 @@ class HTTPClient(object):
         headers = self.get_headers(data)
         body = self.get_body(data)
         print(headers + "\n\n" + body)
+        print("---------------------\n")
         return HTTPResponse(code, body)
 
     def command(self, url, command="GET", args=None):
